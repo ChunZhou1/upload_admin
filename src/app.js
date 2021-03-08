@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Switch, Route } from "react-router-dom";
 
 import { Home } from "./home";
+import { Insert } from "./insert";
 
 import { Public_header } from "./public";
 import { Public_footer } from "./public";
@@ -11,8 +12,9 @@ import { Public_footer } from "./public";
 function Main() {
   return (
     <Switch>
-      <Route path="/Insert"></Route>
-      <Route path="/Update"></Route>
+      <Route path="/Insert">
+        <Insert />
+      </Route>
       <Route path="/">
         <Home />
       </Route>
@@ -26,7 +28,6 @@ function App() {
     <BrowserRouter>
       <Public_header />
       <Main />
-      <Public_footer />
     </BrowserRouter>
   );
 }
