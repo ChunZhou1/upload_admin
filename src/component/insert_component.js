@@ -1,3 +1,7 @@
+import async from "async";
+
+import axios from "axios";
+
 import React from "react";
 
 import { BrowserRouter } from "react-router-dom";
@@ -67,12 +71,37 @@ function Select_catalog(props) {
   );
 }
 
+////////////////////////////////////////////////////////////////
+
+//The funcion below used to process ajax request
+
+async function get_max_id(obj) {
+  var result_catalog = await axios.get("/get/json/product");
+
+  obj.setState({ product_id: result_catalog.data.length + 1 });
+}
+
 class Product_insert_manage extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      product_content: "",
+      select_catalog: "",
+      file_name: "",
+      product_id: 0
+    };
+  }
+
+  componentDidMount() {
+    get_max_id(this).catch(e => {
+      console.log(
+        "There has been a problem with your ajax request: " + e.message
+      );
+    });
   }
 
   render() {
+    var product_id = this.state.product_id;
     return (
       <div className="container">
         <div className="mb-3 row">
@@ -85,7 +114,7 @@ class Product_insert_manage extends React.Component {
               readonly
               className="form-control-plaintext"
               id="product_id"
-              value="12"
+              value={product_id}
             />
           </div>
         </div>
