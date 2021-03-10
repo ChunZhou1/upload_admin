@@ -14,7 +14,7 @@ async function getPictures_product(input_obj) {
   let resList = [];
 
   for (var i = 0; i < input_obj.data.length; i++) {
-    let req_url = "/get/picture/" + input_obj.data[i].pic_content + ".png";
+    let req_url = "/get/picture/" + input_obj.data[i].pic_content;
 
     let req = axios.get(req_url, { responseType: "blob" });
 
@@ -34,7 +34,7 @@ async function getPictures_catalog(input_obj) {
   let resList = [];
 
   for (var i = 0; i < input_obj.data.length; i++) {
-    let req_url = "/get/picture/" + input_obj.data[i].catalog_pic + ".png";
+    let req_url = "/get/picture/" + input_obj.data[i].catalog_pic;
 
     let req = axios.get(req_url, { responseType: "blob" });
 
