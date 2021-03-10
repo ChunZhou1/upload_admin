@@ -2,6 +2,7 @@ import React from "react";
 
 import { BrowserRouter } from "react-router-dom";
 import { Switch, Route } from "react-router-dom";
+
 import { Link } from "react-router-dom";
 
 const bootstrap = require("bootstrap");
@@ -11,6 +12,8 @@ import "../bootstrap/css/bootstrap.min.css";
 import css from "./home_component.css";
 
 import { req_product } from "../ajax";
+
+import history from "../history";
 
 function Table_select_nav() {
   return (
@@ -164,6 +167,16 @@ class Table_product_manage extends React.Component {
 
   handle_click(number) {
     this.setState({ active_number: number });
+
+    /*this.props.history.push({
+      pathname: "/Insert",
+      state: { active_number: 1234 }
+    });*/
+
+    history.push({
+      pathname: "/Insert",
+      state: { active_number: 1234 }
+    });
   }
 
   handle_mouse_enter(number) {

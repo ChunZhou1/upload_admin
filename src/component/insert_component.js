@@ -16,6 +16,8 @@ import { req_product } from "../ajax";
 import { upload_json } from "../ajax";
 import { upload_picture } from "../ajax";
 
+import history from "../history";
+
 function Table_select_nav_insert() {
   return (
     <div className="d-flex justify-content-center">
@@ -143,6 +145,8 @@ class Product_insert_manage extends React.Component {
 
     this.handle_upload = this.handle_upload.bind(this);
 
+    this.handle_return = this.handle_return.bind(this);
+
     this.fileInput = React.createRef();
   }
 
@@ -174,7 +178,16 @@ class Product_insert_manage extends React.Component {
       });
   }
 
+  handle_return() {
+    history.push({
+      pathname: "/",
+      state: { active_number: 5678 }
+    });
+  }
+
   componentDidMount() {
+    console.log("In product");
+    console.log(history.location.state.active_number);
     get_data(this).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message
@@ -259,6 +272,7 @@ class Product_insert_manage extends React.Component {
             type="button"
             value="Insert"
             onClick={this.handle_upload}
+            onDoubleClick={this.handle_return}
           />
         </div>
       </div>
@@ -351,6 +365,8 @@ class Catalog_insert_manage extends React.Component {
   }
 
   componentDidMount() {
+    console.log("In catalog");
+    console.log(history.location.state.active_number);
     get_data_catalog(this).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message

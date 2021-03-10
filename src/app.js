@@ -1,13 +1,14 @@
 import React from "react";
 
 import { BrowserRouter } from "react-router-dom";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Router } from "react-router-dom";
+
+import history from "./history";
 
 import { Home } from "./home";
 import { Insert } from "./insert";
 
 import { Public_header } from "./public";
-import { Public_footer } from "./public";
 
 function Main() {
   return (
@@ -25,10 +26,10 @@ function Main() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router history={history}>
       <Public_header />
       <Main />
-    </BrowserRouter>
+    </Router>
   );
 }
 
