@@ -5,7 +5,7 @@ import axios from "axios";
 import React from "react";
 
 import { BrowserRouter } from "react-router-dom";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Router } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 const bootstrap = require("bootstrap");
@@ -17,6 +17,7 @@ import { upload_json } from "../ajax";
 import { upload_picture } from "../ajax";
 
 import history from "../history";
+import { Redirect } from "react-router-dom";
 
 function Table_select_nav_insert() {
   return (
@@ -61,7 +62,6 @@ function Table_select_insert() {
 export function Table_container_insert() {
   return (
     <BrowserRouter>
-      <Table_select_nav_insert />
       <Table_select_insert />
     </BrowserRouter>
   );
@@ -133,7 +133,8 @@ class Product_insert_manage extends React.Component {
       file_name: "",
       product_id: 0,
       status: "waitting for upload",
-      catalog_list: []
+      catalog_list: [],
+      switch: false
     };
 
     this.handle_product_content_change = this.handle_product_content_change.bind(
@@ -178,16 +179,18 @@ class Product_insert_manage extends React.Component {
       });
   }
 
-  handle_return() {
-    history.push({
-      pathname: "/",
-      state: { active_number: 5678 }
-    });
-  }
+  handle_return() {}
 
   componentDidMount() {
     console.log("In product");
-    console.log(history.location.state.active_number);
+
+    console.log(history.location.state.active_number_product);
+
+    var state = history.location.state.active_number_product;
+    if (typeof state == "undefined" || state == 9999) {
+      this.setState({ switch: true });
+    }
+
     get_data(this).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message
@@ -196,6 +199,10 @@ class Product_insert_manage extends React.Component {
   }
 
   render() {
+    if (this.state.switch == true) {
+      console.log("begin to switch");
+      return <Redirect to="/insert_catalog" />;
+    }
     var product_id = this.state.product_id;
     var catalog_list1 = this.state.catalog_list;
 
@@ -253,7 +260,7 @@ class Product_insert_manage extends React.Component {
           </div>
         </div>
 
-        <div className="mb-3 row">
+        <div className="row" style={{ marginBottom: "5%" }}>
           <label for="pictute_name" className="form-label col-sm-2">
             Picture:
           </label>
@@ -266,14 +273,35 @@ class Product_insert_manage extends React.Component {
             />
           </div>
         </div>
-        <div className="mb-3 col-sm-2 " style={{ marginLeft: "50%" }}>
-          <input
-            class="btn btn-primary"
-            type="button"
-            value="Insert"
-            onClick={this.handle_upload}
-            onDoubleClick={this.handle_return}
-          />
+        <div className="mb-3 row justify-content-md-center">
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-primary"
+              type="button"
+              value="Insert"
+              onClick={this.handle_upload}
+              onDoubleClick={this.handle_return}
+            />
+          </div>
+
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-info"
+              type="button"
+              value="Update"
+              onClick={this.handle_upload}
+              onDoubleClick={this.handle_return}
+            />
+          </div>
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-danger"
+              type="button"
+              value="Delete"
+              onClick={this.handle_upload}
+              onDoubleClick={this.handle_return}
+            />
+          </div>
         </div>
       </div>
     );
@@ -328,7 +356,8 @@ class Catalog_insert_manage extends React.Component {
 
       file_name: "",
       catalog_id: 0,
-      status: "waitting for upload"
+      status: "waitting for upload",
+      switch: false
     };
 
     this.handle_catalog_content_change = this.handle_catalog_content_change.bind(
@@ -366,7 +395,13 @@ class Catalog_insert_manage extends React.Component {
 
   componentDidMount() {
     console.log("In catalog");
-    console.log(history.location.state.active_number);
+
+    console.log(history.location.state.active_number_catalog);
+
+    var state = history.location.state.active_number_catalog;
+    if (typeof state == "undefined" || state == 9999) {
+      this.setState({ switch: true });
+    }
     get_data_catalog(this).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message
@@ -375,6 +410,10 @@ class Catalog_insert_manage extends React.Component {
   }
 
   render() {
+    if (this.state.switch == true) {
+      console.log("begin to switch");
+      return <Redirect to="/" />;
+    }
     return (
       <div className="container">
         <div className="mb-3 row">
@@ -408,7 +447,7 @@ class Catalog_insert_manage extends React.Component {
           </div>
         </div>
 
-        <div className="mb-3 row">
+        <div className="row" style={{ marginBottom: "5%" }}>
           <label for="pictute_name" className="form-label col-sm-2">
             Picture:
           </label>
@@ -421,13 +460,34 @@ class Catalog_insert_manage extends React.Component {
             />
           </div>
         </div>
-        <div className="mb-3 col-sm-2 " style={{ marginLeft: "50%" }}>
-          <input
-            class="btn btn-primary"
-            type="button"
-            value="Insert"
-            onClick={this.handle_upload}
-          />
+        <div className="mb-3 row justify-content-md-center">
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-primary"
+              type="button"
+              value="Insert"
+              onClick={this.handle_upload}
+            />
+          </div>
+
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-info"
+              type="button"
+              value="Update"
+              onClick={this.handle_upload}
+              onDoubleClick={this.handle_return}
+            />
+          </div>
+          <div className="mb-3 col-sm-2 ">
+            <input
+              class="btn btn-danger"
+              type="button"
+              value="Delete"
+              onClick={this.handle_upload}
+              onDoubleClick={this.handle_return}
+            />
+          </div>
         </div>
       </div>
     );

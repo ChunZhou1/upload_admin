@@ -10,8 +10,8 @@ const main_menu = [
     id: 1,
     content: "Browse",
     content_link: "/"
-  },
-  {
+  }
+  /*{
     id: 2,
     content: "Insert",
     content_link: "/Insert"
@@ -31,7 +31,7 @@ const main_menu = [
     id: 5,
     content: "DeleteAll",
     content_link: "/"
-  }
+  }*/
 ];
 
 ////////This is header component/////////////////////////////////////////////////////////////

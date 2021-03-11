@@ -168,14 +168,9 @@ class Table_product_manage extends React.Component {
   handle_click(number) {
     this.setState({ active_number: number });
 
-    /*this.props.history.push({
-      pathname: "/Insert",
-      state: { active_number: 1234 }
-    });*/
-
     history.push({
       pathname: "/Insert",
-      state: { active_number: 1234 }
+      state: { active_number_product: number, active_number_catalog: 9999 }
     });
   }
 
@@ -249,6 +244,10 @@ class Table_catalog_manage extends React.Component {
 
   handle_click(number) {
     this.setState({ active_number: number });
+    history.push({
+      pathname: "/Insert",
+      state: { active_number_catalog: number, active_number_product: 9999 }
+    });
   }
 
   handle_mouse_enter(number) {
