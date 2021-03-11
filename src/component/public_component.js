@@ -9,7 +9,7 @@ const main_menu = [
   {
     id: 1,
     content: "Browse",
-    content_link: "/"
+    content_link: "/product_table"
   }
   /*{
     id: 2,

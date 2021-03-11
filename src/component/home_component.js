@@ -1,8 +1,5 @@
 import React from "react";
 
-import { BrowserRouter } from "react-router-dom";
-import { Switch, Route } from "react-router-dom";
-
 import { Link } from "react-router-dom";
 
 const bootstrap = require("bootstrap");
@@ -15,12 +12,12 @@ import { req_product } from "../ajax";
 
 import history from "../history";
 
-function Table_select_nav() {
+export function Table_select_nav() {
   return (
     <div className="d-flex justify-content-center">
       <li className="nav-item" style={{ listStyle: "none" }}>
         <Link
-          to="/"
+          to="/product_table"
           className="nav-link"
           style={{ fontSize: "15px", fontWeight: "600" }}
         >
@@ -38,29 +35,6 @@ function Table_select_nav() {
         </Link>
       </li>
     </div>
-  );
-}
-
-function Table_select() {
-  return (
-    <Switch>
-      <Route path="/catalog_table">
-        <Table_catalog_manage />
-      </Route>
-      <Route path="/">
-        <Table_product_manage />
-      </Route>
-            
-    </Switch>
-  );
-}
-
-export function Table_container() {
-  return (
-    <BrowserRouter>
-      <Table_select_nav />
-      <Table_select />
-    </BrowserRouter>
   );
 }
 
@@ -141,7 +115,7 @@ function Table_row(props) {
   );
 }
 
-class Table_product_manage extends React.Component {
+export class Table_product_manage extends React.Component {
   constructor(props) {
     super(props);
 
@@ -169,8 +143,12 @@ class Table_product_manage extends React.Component {
     this.setState({ active_number: number });
 
     history.push({
-      pathname: "/Insert",
-      state: { active_number_product: number, active_number_catalog: 9999 }
+      pathname: "/insert_product",
+      state: {
+        active_number_product: number,
+        product: this.state.product,
+        product_catalog: this.state.product_catalog
+      }
     });
   }
 
@@ -218,7 +196,7 @@ class Table_product_manage extends React.Component {
   }
 }
 
-class Table_catalog_manage extends React.Component {
+export class Table_catalog_manage extends React.Component {
   constructor(props) {
     super(props);
 
@@ -245,8 +223,11 @@ class Table_catalog_manage extends React.Component {
   handle_click(number) {
     this.setState({ active_number: number });
     history.push({
-      pathname: "/Insert",
-      state: { active_number_catalog: number, active_number_product: 9999 }
+      pathname: "/insert_catalog",
+      state: {
+        active_number_catalog: number,
+        product_catalog: this.state.product_catalog
+      }
     });
   }
 

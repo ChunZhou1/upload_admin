@@ -4,10 +4,6 @@ import axios from "axios";
 
 import React from "react";
 
-import { BrowserRouter } from "react-router-dom";
-import { Switch, Route, Router } from "react-router-dom";
-import { Link } from "react-router-dom";
-
 const bootstrap = require("bootstrap");
 
 import "../bootstrap/css/bootstrap.min.css";
@@ -18,54 +14,6 @@ import { upload_picture } from "../ajax";
 
 import history from "../history";
 import { Redirect } from "react-router-dom";
-
-function Table_select_nav_insert() {
-  return (
-    <div className="d-flex justify-content-center">
-      <li className="nav-item" style={{ listStyle: "none" }}>
-        <Link
-          to="/"
-          className="nav-link"
-          style={{ fontSize: "15px", fontWeight: "600" }}
-        >
-          Product Table
-        </Link>
-      </li>
-
-      <li className="nav-item" style={{ listStyle: "none" }}>
-        <Link
-          to="/insert_catalog"
-          className="nav-link"
-          style={{ fontSize: "15px", fontWeight: "600" }}
-        >
-          Catalog Table
-        </Link>
-      </li>
-    </div>
-  );
-}
-
-function Table_select_insert() {
-  return (
-    <Switch>
-      <Route path="/insert_catalog">
-        <Catalog_insert_manage />
-      </Route>
-      <Route path="/">
-        <Product_insert_manage />
-      </Route>
-            
-    </Switch>
-  );
-}
-
-export function Table_container_insert() {
-  return (
-    <BrowserRouter>
-      <Table_select_insert />
-    </BrowserRouter>
-  );
-}
 
 function Select_catalog(props) {
   return (
@@ -84,15 +32,13 @@ function Select_catalog(props) {
 
 //The funcion below used to process product ajax request
 
-async function get_data(obj) {
-  var result_product = await axios.get("/get/json/product");
-  var result_catalog = await axios.get("/get/json/product_catalog");
-
+async function get_data(obj, product, product_catalog, active_number) {
   obj.setState({
-    product_id: result_product.data.length + 1,
-    catalog_list: result_catalog.data,
-    select_catalog: result_catalog.data[0].catalog_name,
-    product_content: ""
+    product_id: product[active_number].id,
+    catalog_list: product_catalog,
+    select_catalog: product[active_number].catalog,
+    product_content: product[active_number].content,
+    file_name: product[active_number].pic_content
   });
 }
 
@@ -100,20 +46,49 @@ async function upload_json_picture_product(
   id,
   product_content,
   product_catalog,
-  file_name
+  file_name,
+  action
 ) {
   var json1 = new Object();
 
+  var json_url;
+
+  switch (action) {
+    case "insert":
+      json_url = "upload/json/product";
+      break;
+
+    case "update":
+      json_url = "upload/json/product_update";
+      break;
+
+    case "delete":
+      json_url = "upload/json/product_delete";
+      break;
+
+    default:
+      json_url = "";
+      break;
+  }
+
   json1.id = id;
-  json1.content = product_content;
-  json1.catalog = product_catalog;
-  json1.pic_content = file_name.name;
+  if (action != "delete") {
+    json1.content = product_content;
+    json1.catalog = product_catalog;
+    json1.pic_content = file_name.name;
+  } else {
+    json1.content = "";
+    json1.catalog = "";
+    json1.pic_content = {};
+  }
 
-  console.log(file_name.name);
+  var result1 = await upload_json(JSON.stringify(json1), json_url);
 
-  var result1 = await upload_json(JSON.stringify(json1), "upload/json/product");
-
-  var result2 = await upload_picture(file_name, "upload/picture");
+  if (action != "delete") {
+    var result2 = await upload_picture(file_name, "upload/picture");
+  } else {
+    result2 = "picture upload success";
+  }
 
   if (result1 != "json upload success" || result2 != "picture upload success") {
     return "upload fail";
@@ -124,7 +99,7 @@ async function upload_json_picture_product(
 
 //////////////////////////////////////////////////////////////////////
 
-class Product_insert_manage extends React.Component {
+export class Product_insert_manage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -144,19 +119,37 @@ class Product_insert_manage extends React.Component {
       this
     );
 
+    this.handle_product_file_change = this.handle_product_file_change.bind(
+      this
+    );
+
     this.handle_upload = this.handle_upload.bind(this);
 
-    this.handle_return = this.handle_return.bind(this);
+    this.handle_update = this.handle_update.bind(this);
+
+    this.handle_delete = this.handle_delete.bind(this);
 
     this.fileInput = React.createRef();
   }
 
   handle_product_content_change(event) {
-    this.setState({ product_content: event.target.value });
+    this.setState({
+      product_content: event.target.value,
+      status: "waitting for upload"
+    });
   }
 
   handle_product_catalog_change(event) {
-    this.setState({ select_catalog: event.target.value });
+    this.setState({
+      select_catalog: event.target.value,
+      status: "waitting for upload"
+    });
+  }
+
+  handle_product_file_change() {
+    this.setState({
+      status: "waitting for upload"
+    });
   }
 
   handle_upload() {
@@ -164,14 +157,10 @@ class Product_insert_manage extends React.Component {
       9999,
       this.state.product_content,
       this.state.select_catalog,
-      this.fileInput.current.files[0]
+      this.fileInput.current.files[0],
+      "insert"
     )
       .then(result => {
-        get_data(this).catch(e => {
-          console.log(
-            "There has been a problem with your ajax request: " + e.message
-          );
-        });
         this.setState({ status: result });
       })
       .catch(e => {
@@ -179,19 +168,53 @@ class Product_insert_manage extends React.Component {
       });
   }
 
-  handle_return() {}
+  handle_update() {
+    upload_json_picture_product(
+      this.state.product_id,
+      this.state.product_content,
+      this.state.select_catalog,
+      this.fileInput.current.files[0],
+      "update"
+    )
+      .then(result => {
+        console.log("update okokoK!!!!!!!!!!!!");
+        this.setState({ status: result, switch: true });
+      })
+      .catch(e => {
+        console.log("There has been a problem with upload: " + e.message);
+      });
+  }
+
+  handle_delete() {
+    upload_json_picture_product(
+      this.state.product_id,
+      this.state.product_content,
+      this.state.select_catalog,
+      this.fileInput.current.files[0],
+      "delete"
+    )
+      .then(result => {
+        console.log("update okokoK!!!!!!!!!!!!");
+        this.setState({ status: result, switch: true });
+      })
+      .catch(e => {
+        console.log("There has been a problem with upload: " + e.message);
+      });
+  }
 
   componentDidMount() {
     console.log("In product");
 
     console.log(history.location.state.active_number_product);
 
-    var state = history.location.state.active_number_product;
-    if (typeof state == "undefined" || state == 9999) {
-      this.setState({ switch: true });
-    }
+    var active_number = history.location.state.active_number_product;
 
-    get_data(this).catch(e => {
+    get_data(
+      this,
+      history.location.state.product,
+      history.location.state.product_catalog,
+      active_number
+    ).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message
       );
@@ -201,8 +224,9 @@ class Product_insert_manage extends React.Component {
   render() {
     if (this.state.switch == true) {
       console.log("begin to switch");
-      return <Redirect to="/insert_catalog" />;
+      return <Redirect to="/product_table" />;
     }
+
     var product_id = this.state.product_id;
     var catalog_list1 = this.state.catalog_list;
 
@@ -226,7 +250,7 @@ class Product_insert_manage extends React.Component {
               readonly
               className="form-control-plaintext"
               id="product_id"
-              value={product_id}
+              value={this.state.product_id}
             />
           </div>
 
@@ -269,6 +293,7 @@ class Product_insert_manage extends React.Component {
               className="form-control"
               type="file"
               id="pictute_name"
+              onChange={this.handle_product_file_change}
               ref={this.fileInput}
             />
           </div>
@@ -280,7 +305,6 @@ class Product_insert_manage extends React.Component {
               type="button"
               value="Insert"
               onClick={this.handle_upload}
-              onDoubleClick={this.handle_return}
             />
           </div>
 
@@ -289,8 +313,7 @@ class Product_insert_manage extends React.Component {
               class="btn btn-info"
               type="button"
               value="Update"
-              onClick={this.handle_upload}
-              onDoubleClick={this.handle_return}
+              onClick={this.handle_update}
             />
           </div>
           <div className="mb-3 col-sm-2 ">
@@ -298,8 +321,7 @@ class Product_insert_manage extends React.Component {
               class="btn btn-danger"
               type="button"
               value="Delete"
-              onClick={this.handle_upload}
-              onDoubleClick={this.handle_return}
+              onClick={this.handle_delete}
             />
           </div>
         </div>
@@ -312,13 +334,13 @@ class Product_insert_manage extends React.Component {
 
 //The funcion below used to process catalog ajax of catalog request
 
-async function get_data_catalog(obj) {
-  var result_catalog = await axios.get("/get/json/product_catalog");
-
+async function get_data_catalog(obj, product_catalog, active_number) {
   obj.setState({
-    catalog_id: result_catalog.data.length + 1,
+    catalog_id: product_catalog[active_number].id,
 
-    catalog_content: ""
+    catalog_content: product_catalog[active_number].catalog_name,
+
+    file_name: product_catalog[active_number].catalog_pic
   });
 }
 
@@ -326,18 +348,49 @@ async function upload_json_picture_catalog(
   id,
   catalog_content,
 
-  file_name
+  file_name,
+
+  action
 ) {
+  var json_url;
   var json1 = new Object();
 
+  switch (action) {
+    case "insert":
+      json_url = "upload/json/catalog";
+      break;
+
+    case "update":
+      json_url = "upload/json/catalog_update";
+      break;
+
+    case "delete":
+      json_url = "upload/json/catalog_delete";
+      break;
+
+    default:
+      json_url = "";
+      break;
+  }
+
   json1.id = id;
-  json1.catalog_name = catalog_content;
+  if (action != "delete") {
+    json1.catalog_name = catalog_content;
 
-  json1.catalog_pic = file_name.name;
+    json1.catalog_pic = file_name.name;
+  } else {
+    json1.catalog_name = "";
 
-  var result1 = await upload_json(JSON.stringify(json1), "upload/json/catalog");
+    json1.catalog_pic = {};
+  }
 
-  var result2 = await upload_picture(file_name, "upload/picture");
+  var result1 = await upload_json(JSON.stringify(json1), json_url);
+
+  if (action != "delete") {
+    var result2 = await upload_picture(file_name, "upload/picture");
+  } else {
+    result2 = "picture upload success";
+  }
 
   if (result1 != "json upload success" || result2 != "picture upload success") {
     return "upload fail";
@@ -348,7 +401,7 @@ async function upload_json_picture_catalog(
 
 //////////////////////////////////////////////////////////////////////
 
-class Catalog_insert_manage extends React.Component {
+export class Catalog_insert_manage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -364,13 +417,30 @@ class Catalog_insert_manage extends React.Component {
       this
     );
 
+    this.handle_catalog_file_change = this.handle_catalog_file_change.bind(
+      this
+    );
+
     this.handle_upload = this.handle_upload.bind(this);
+
+    this.handle_update = this.handle_update.bind(this);
+
+    this.handle_delete = this.handle_delete.bind(this);
 
     this.fileInput = React.createRef();
   }
 
   handle_catalog_content_change(event) {
-    this.setState({ catalog_content: event.target.value });
+    this.setState({
+      catalog_content: event.target.value,
+      status: "waitting for upload"
+    });
+  }
+
+  handle_catalog_file_change() {
+    this.setState({
+      status: "waitting for upload"
+    });
   }
 
   handle_upload() {
@@ -378,15 +448,43 @@ class Catalog_insert_manage extends React.Component {
       8888,
       this.state.catalog_content,
 
-      this.fileInput.current.files[0]
+      this.fileInput.current.files[0],
+      "insert"
     )
       .then(result => {
-        get_data_catalog(this).catch(e => {
-          console.log(
-            "There has been a problem with your ajax request: " + e.message
-          );
-        });
         this.setState({ status: result });
+      })
+      .catch(e => {
+        console.log("There has been a problem with upload: " + e.message);
+      });
+  }
+
+  handle_update() {
+    upload_json_picture_catalog(
+      this.state.catalog_id,
+      this.state.catalog_content,
+
+      this.fileInput.current.files[0],
+      "update"
+    )
+      .then(result => {
+        this.setState({ status: result, switch: true });
+      })
+      .catch(e => {
+        console.log("There has been a problem with upload: " + e.message);
+      });
+  }
+
+  handle_delete() {
+    upload_json_picture_catalog(
+      this.state.catalog_id,
+      this.state.catalog_content,
+
+      this.fileInput.current.files[0],
+      "delete"
+    )
+      .then(result => {
+        this.setState({ status: result, switch: true });
       })
       .catch(e => {
         console.log("There has been a problem with upload: " + e.message);
@@ -398,11 +496,13 @@ class Catalog_insert_manage extends React.Component {
 
     console.log(history.location.state.active_number_catalog);
 
-    var state = history.location.state.active_number_catalog;
-    if (typeof state == "undefined" || state == 9999) {
-      this.setState({ switch: true });
-    }
-    get_data_catalog(this).catch(e => {
+    var active_number = history.location.state.active_number_catalog;
+
+    get_data_catalog(
+      this,
+      history.location.state.product_catalog,
+      active_number
+    ).catch(e => {
       console.log(
         "There has been a problem with your ajax request: " + e.message
       );
@@ -412,8 +512,9 @@ class Catalog_insert_manage extends React.Component {
   render() {
     if (this.state.switch == true) {
       console.log("begin to switch");
-      return <Redirect to="/" />;
+      return <Redirect to="/catalog_table" />;
     }
+
     return (
       <div className="container">
         <div className="mb-3 row">
@@ -456,6 +557,7 @@ class Catalog_insert_manage extends React.Component {
               className="form-control"
               type="file"
               id="pictute_name"
+              onChange={this.handle_catalog_file_change}
               ref={this.fileInput}
             />
           </div>
@@ -475,8 +577,7 @@ class Catalog_insert_manage extends React.Component {
               class="btn btn-info"
               type="button"
               value="Update"
-              onClick={this.handle_upload}
-              onDoubleClick={this.handle_return}
+              onClick={this.handle_update}
             />
           </div>
           <div className="mb-3 col-sm-2 ">
@@ -484,8 +585,7 @@ class Catalog_insert_manage extends React.Component {
               class="btn btn-danger"
               type="button"
               value="Delete"
-              onClick={this.handle_upload}
-              onDoubleClick={this.handle_return}
+              onClick={this.handle_delete}
             />
           </div>
         </div>
